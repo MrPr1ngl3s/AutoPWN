@@ -75,7 +75,7 @@ def LocalPortForwarding(username, password):
 
 	ssh_session.interact()
 ```
-Para poder acceder al repositorio se había que autenticar, y también se utilizaba otro csrftoken, es por ello en la función **GetCsrf2Token** se conseguir el csrftoken y en la función **login2** se accedía como el usuario, para finalmente utilizar la misma sesión con **session** en la función **GetPasswordZip** para obtener la contraseña necesaria.
+Para poder acceder al repositorio se había que autenticar, y también se utilizaba otro csrftoken, es por ello en la función **GetCsrf2Token** se consigue el csrftoken y con la función **login2** se accedía como el usuario, para finalmente utilizar la misma sesión con **session** en la función **GetPasswordZip** para obtener la contraseña necesaria.
 
 ```python
 def GetCsrf2Token():
