@@ -16,7 +16,7 @@ En caso de no haber realizado la máquina Drive, es recomendable revisar el [wri
 
 # Funcionamiento
 
-El primer paso que realiza el script es la creación del usuario, para ello accede a la función ** GetCsrfTokenRegister** para conseguir el csrftoken mediante expresiones regulares y luego acceder a la función **register**  para crear dicho usuario, jugando con **session** para que el token no cambie entre solicitudes.
+El primer paso que realiza el script es la creación del usuario, para ello accede a la función **GetCsrfTokenRegister** para conseguir el csrftoken mediante expresiones regulares y luego acceder a la función **register**  para crear dicho usuario, jugando con **session** para que el token no cambie entre solicitudes.
 
 ```python
 s = requests.session()
