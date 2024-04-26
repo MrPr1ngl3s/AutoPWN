@@ -156,7 +156,6 @@ def Doodle(username,password_2):
 
 	ssh_session.sendline('clear')
 
-
 	ssh_session.interact()
 
 
