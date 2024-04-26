@@ -171,13 +171,11 @@ if __name__ == "__main__":
 
 	login(csrfmiddlewaretoken, 'pr1ngl3ss', 'pringles!@')
 
-	log.info("Consiguiendo contraseña del ZIP...")
-
-	time.sleep(1)
-
 	username, password = GetCredentials()
 
 	proc = multiprocessing.Process(target=LocalPortForwarding, args=(username,password,)).start()
+
+	log.info("Consiguiendo contraseña del ZIP...")
 
 	time.sleep(1)
 
