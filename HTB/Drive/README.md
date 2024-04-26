@@ -1,6 +1,6 @@
 # Autopwn - Drive
 
-En caso de no haber realizado la máquina Drive, es recomendable revisar el [writeup](https://mrpr1ingl3s.github.io/htb/drive' ) para comprender el autopwn.
+En caso de no haber realizado la máquina Drive, es recomendable revisar el [writeup](https://mrpr1ingl3s.github.io/htb/drive) para comprender el autopwn.
 
 <p align="center">
 	<img src="Img/Autopwn-Drive.png"
