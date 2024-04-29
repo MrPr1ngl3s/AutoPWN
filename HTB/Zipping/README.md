@@ -1,6 +1,6 @@
 # Autopwn - Zipping
 
-En caso de no haber realizado la máquina Zipping, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/htb/zipping) para comprender el autopwn.
+En caso de no haber realizado la máquina Zipping, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/htb/Zipping) para comprender el autopwn.
 
 <p align="center">
 	<img src="Img/Autopwn-Zipping.png"
