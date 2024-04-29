@@ -1,6 +1,6 @@
 # Autopwn - DarkHole1
 
-En caso de no haber realizado la máquina DarkHole1, es recomendable revisar el [writeup](http://192.168.6.5/vulnhub/darkhole1/ ) para comprender el autopwn.
+En caso de no haber realizado la máquina DarkHole1, es recomendable revisar el [writeup](http://mrpr1ngl3s.github.io/vulnhub/darkhole1/ ) para comprender el autopwn.
 
 <p align="center">
 	<img src="Img/Autopwn-DarkHole1.png"
