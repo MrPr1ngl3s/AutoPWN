@@ -11,7 +11,7 @@ En caso de no haber realizado la máquina EarlyAccess, es recomendable revisar e
 
 # Funcionamiento
 
-El primer paso que que realiza el script es en la creación y la modificación del usuario, para ello accede a la función **Register** obteniendo primero el token para la creación del usuario utilizando el **session** para que el token no cambie entre solicitudes.
+El primer paso que realiza el script es en la creación y la modificación del usuario, para ello accede a la función **Register** obteniendo primero el token para la creación del usuario utilizando el **session** para que el token no cambie entre solicitudes.
 
 ```python
 s = requests.session()
