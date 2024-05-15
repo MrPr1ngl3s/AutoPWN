@@ -6,7 +6,6 @@ import multiprocessing
 import subprocess
 import shutil
 import pexpect
-import paramiko
 import sys
 
 IP = "192.168.6.165"
