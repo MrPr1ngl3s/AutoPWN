@@ -70,7 +70,7 @@ time.sleep(1)
 r = requests.get(main_url2)
 ```
 
-Finalmente durante los 20, si recibe una petición, ejecuta de forma automática todos los pasos que se necesitan para realizar la escalada de privilegios.
+Finalmente durante los 20 segundos, si recibe una petición, ejecuta de forma automática todos los pasos que se necesitan para realizar la escalada de privilegios.
 
 ```python3
 with listen(lport, timeout=20) as shell:
