@@ -231,7 +231,7 @@ En la función **get_cert**, accede como el usuario zzinter, no sin antes realiz
 
 ```python3
 def get_cert():
-	# Realiza un Local Port Forwarding aprobechando la conexión por SSH, convirtiendo el puerto 2222
+	# Realiza un Local Port Forwarding aprovechando la conexión por SSH, convirtiendo el puerto 2222
 	# a nuestro puerto 8080
 	os.system("ssh -i id_rsa zzinter@10.10.11.27 -L 8080:172.223.0.1:2222 -Nf")
 
