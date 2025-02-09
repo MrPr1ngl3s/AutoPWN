@@ -264,7 +264,7 @@ def get_cert():
 	client.close()
 
 def access_root():
-	ssh_command = f"ssh -o StrictHostKeyChecking=no root@127.0.0.1 -i id_rsa_root -p 8080"
+	ssh_command = "ssh -o StrictHostKeyChecking=no root@127.0.0.1 -i id_rsa_root -p 8080"
 
 	ssh_session = pexpect.spawn(ssh_command, timeout=10)
 
