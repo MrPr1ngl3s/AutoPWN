@@ -40,7 +40,7 @@ def smb_server():
 threading.Thread(target=smb_server, daemon=True).start()
 ```
 
-Mientras, la función **register **crea el usuario que enviará el **XSS** al usuario admin, y la función  **login** obtiene el **ID** de dicho usuario para poder enviar el mensaje.
+Mientras, la función **register** crea el usuario que enviará el **XSS** al usuario admin, y la función  **login** obtiene el **ID** de dicho usuario para poder enviar el mensaje.
 
 ````python3
 def register():
