@@ -42,7 +42,7 @@ threading.Thread(target=smb_server, daemon=True).start()
 
 Mientras, la función **register** crea el usuario que enviará el **XSS** al usuario admin, y la función  **login** obtiene el **ID** de dicho usuario para poder enviar el mensaje.
 
-````python3
+```python3
 def register():
 
 	url_register = main_url + "/register.php"
