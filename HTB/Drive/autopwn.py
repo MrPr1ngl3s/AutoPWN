@@ -62,7 +62,7 @@ def GetCredentials():
 	return username, password
 
 def LocalPortForwarding(username, password):
-	ssh_command = f"ssh {username}@10.10.11.235 -L:3000:127.0.0.1:3000 -fN"
+	ssh_command = f"ssh {username}@10.10.11.235 -o StrictHostKeyChecking=no -L:3000:127.0.0.1:3000 -fN"
 
 	ssh_session = pexpect.spawn(ssh_command, timeout=None)
 
