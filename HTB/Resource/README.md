@@ -1,6 +1,6 @@
 # Autopwn - Resource
 
-En caso de no haber realizado la máquina Resource, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/htb/Resource) para comprender el autopwn.
+En caso de no haber realizado la máquina Resource, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/writeups/htb/Resource) para comprender el autopwn.
 
 <p align="center">
     <img src="Img/Autopwn-Resource.png"
