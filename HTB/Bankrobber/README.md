@@ -1,6 +1,6 @@
 # Autopwn - EarlyAccess
 
-En caso de no haber realizado la máquina Bankrobber, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/htb/Bankrobber) para comprender el autopwn.
+En caso de no haber realizado la máquina Bankrobber, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/writeups/htb/Bankrobber) para comprender el autopwn.
 
 <p align="center">
 	<img src="Img/Autopwn-Bankrobber.png"
