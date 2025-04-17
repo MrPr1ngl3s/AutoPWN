@@ -1,6 +1,6 @@
 # Autopwn - EarlyAccess
 
-En caso de no haber realizado la máquina EarlyAccess, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/htb/EarlyAccess) para comprender el autopwn.
+En caso de no haber realizado la máquina EarlyAccess, es recomendable revisar el [writeup](https://mrpr1ngl3s.github.io/writeups/htb/EarlyAccess) para comprender el autopwn.
 
 <p align="center">
 	<img src="Img/Autopwn-EarlyAccess.png"
