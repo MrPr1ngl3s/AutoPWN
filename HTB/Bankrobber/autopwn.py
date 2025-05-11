@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import requests, time, subprocess, atexit, threading, signal, sys, socket, os
 from impacket.smbserver import SimpleSMBServer
 
