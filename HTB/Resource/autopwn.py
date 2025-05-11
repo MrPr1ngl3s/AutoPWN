@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import requests
 from pwn import re, listen, log
 import time
